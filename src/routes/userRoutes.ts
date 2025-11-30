@@ -72,10 +72,6 @@ router.get("/", async (req, res) => {
 
   const offset = (page - 1) * limit;
 
-  console.log("page ", page);
-  console.log("limit ", limit);
-  console.log("offset ", offset);
-
   try {
     const [rows] = await pool.execute("select * from users limit ? offset ?", [
       limit.toString(),
