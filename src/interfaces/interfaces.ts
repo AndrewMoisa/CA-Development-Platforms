@@ -11,7 +11,15 @@ export interface UserResponse {
   email: string;
 }
 
-export interface Article {
+export interface ArticleResponse {
+  id: number;
+  title: string;
+  body: string;
+  category: string;
+  
+}
+
+export interface Article extends ArticleResponse  {
   id: number;
   title: string;
   body: string;
@@ -19,3 +27,4 @@ export interface Article {
   submitted_by: number;
   created_at: Date;
 }
+
