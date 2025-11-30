@@ -1,12 +1,8 @@
 import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
 import { pool } from "../config/database";
-import { Article } from "../interfaces/interfaces";
-import {
-  validatePartialUserData,
-  validateRequiredUserData,
-  validateUserId,
-} from "../middlewares/userValidation";
+import { Article, ArticleResponse } from "../interfaces/interfaces";
+import { validatePostId, validateRequiredPostData } from "../middlewares/postValidation";
 import { authenticateToken } from "../middlewares/authMiddleware";
 
 const router = Router();
@@ -36,5 +32,58 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch articles" });
   }
 });
+
+// Get article by ID
+router.get("/:id", validatePostId, async (req, res) => {
+  try {
+    const articleId = Number(req.params.id);
+
+    const [rows] = await pool.execute("select * from articles where id = ?", [
+      articleId,
+    ]);
+    const articles = rows as Article[];
+
+    if (articles.length === 0) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+
+    res.json(articles[0]);
+  } catch (error) {
+    console.error("Error", error);
+    res.status(500).json({ error: "Failed to fetch article" });
+  }
+});
+
+// Update article
+router.put(
+  "/:id",
+  validatePostId,
+  validateRequiredPostData,
+  async (req, res) => {
+    const articleId = Number(req.params.id);
+    const { title, body, category } = req.body;
+
+    try {
+      const [result]: [ResultSetHeader, any] = await pool.execute(
+        "update articles set title = ?, body = ?, category = ? where id = ?",
+        [title, body, category, articleId]
+      );
+
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      const article: ArticleResponse = { id: articleId, title, body, category };
+
+      res.json(article);
+    } catch (error) {
+      console.error("Error", error);
+      res.status(500).json({ error: "Failed to update article" });
+    }
+  }
+);
+
+
+
 
 export default router;
