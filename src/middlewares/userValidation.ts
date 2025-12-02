@@ -6,10 +6,13 @@ export function validateUserId(
   next: NextFunction
 ) {
   const userId = Number(req.params.id);
+  console.log("Validated user id:", userId);
 
   if (isNaN(userId)) {
     return res.status(400).json({ error: "Invalid user id" });
   }
+
+
 
   next();
 }

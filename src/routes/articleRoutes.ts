@@ -54,6 +54,38 @@ router.get("/:id", validatePostId, async (req, res) => {
   }
 });
 
+// Create new article
+
+router.post(
+  "/",
+  authenticateToken,
+  validateRequiredPostData,
+  async (req, res) => {
+    const { title, body, category } = req.body;
+    const userId = (req as any).user.id;
+
+    try {
+      const [result]: [ResultSetHeader, any] = await pool.execute(
+        "insert into articles (title, body, category, submitted_by_user_id, created_at) values (?, ?, ?, ?, ?)",
+        [title, body, category, userId, new Date()]
+      );
+      const newArticleId = result.insertId;
+
+      const article: ArticleResponse = {
+        id: newArticleId,
+        title,
+        body,
+        category,
+      };  
+      res.status(201).json(article);
+    } catch (error) {
+      console.error("Error", error);
+      res.status(500).json({ error: "Failed to create article" });
+    }
+  }
+);
+
+
 // Update article
 router.put(
   "/:id",
@@ -82,6 +114,7 @@ router.put(
     }
   }
 );
+
 
 
 
