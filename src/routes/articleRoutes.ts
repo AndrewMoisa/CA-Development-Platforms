@@ -116,6 +116,45 @@ router.put(
   }
 );
 
+// Update article partially
+router.patch(
+  "/:id",
+  validatePostId,
+  authenticateToken,
+  async (req, res) => {
+    const articleId = Number(req.params.id);
+    const { title, body, category } = req.body;
+    const fieldsToUpdate: string[] = [];
+    const values: any[] = [];
+    if (title) {
+      fieldsToUpdate.push("title = ?");
+      values.push(title);
+    }
+    if (body) {
+      fieldsToUpdate.push("body = ?");
+      values.push(body);
+    }
+    if (category) {
+      fieldsToUpdate.push("category = ?");
+      values.push(category);
+    }
+    if (fieldsToUpdate.length === 0) {
+      return res
+        .status(400)
+        .json({ error: "At least one field (title, body, category) is required to update" });
+    }
+    values.push(articleId);
+
+    const updateQuery = `update articles set ${fieldsToUpdate.join(
+      ", "
+    )} where id = ?`;
+
+    await pool.execute(updateQuery, values);
+
+    res.json({ message: "Article updated successfully" });
+  }
+);
+
 // Delete article
 router.delete("/:id", validatePostId, authenticateToken, async (req, res) => {
   const articleId = Number(req.params.id);
