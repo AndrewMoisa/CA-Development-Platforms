@@ -6,6 +6,7 @@ import { validatePostId } from "../middlewares/postValidation";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validateResource";
 import { createArticleSchema, updateArticleSchema, patchArticleSchema } from "../schemas/article.schema";
+import { checkArticleOwnership } from "../middlewares/articleMiddleware";
 
 const router = Router();
 
@@ -93,31 +94,14 @@ router.put(
   "/:id",
   validatePostId,
   authenticateToken,
+  checkArticleOwnership,
   validate(updateArticleSchema),
   async (req, res) => {
     const articleId = Number(req.params.id);
-    const userId = (req as any).user.id;
     const { title, body, category } = req.body;
 
     try {
-      // Check if article exists and belongs to user
-      const [rows] = await pool.execute(
-        "select submitted_by_user_id from articles where id = ?",
-        [articleId]
-      );
-      const articles = rows as any[];
-
-      if (articles.length === 0) {
-        return res.status(404).json({ error: "Article not found" });
-      }
-
-      if (articles[0].submitted_by_user_id !== userId) {
-        return res
-          .status(403)
-          .json({ error: "You are not authorized to update this article" });
-      }
-
-      const [result]: [ResultSetHeader, any] = await pool.execute(
+      await pool.execute(
         "update articles set title = ?, body = ?, category = ? where id = ?",
         [title, body, category, articleId]
       );
@@ -137,31 +121,13 @@ router.patch(
   "/:id",
   validatePostId,
   authenticateToken,
+  checkArticleOwnership,
   validate(patchArticleSchema),
   async (req, res) => {
     const articleId = Number(req.params.id);
-    const userId = (req as any).user.id;
     const { title, body, category } = req.body;
 
     try {
-
-      // Check if article exists and belongs to user
-      const [rows] = await pool.execute(
-        "select submitted_by_user_id from articles where id = ?",
-        [articleId]
-      );
-      const articles = rows as any[];
-
-      if (articles.length === 0) {
-        return res.status(404).json({ error: "Article not found" });
-      }
-
-      if (articles[0].submitted_by_user_id !== userId) {
-        return res
-          .status(403)
-          .json({ error: "You are not authorized to update this article" });
-      }
-
       const fieldsToUpdate: string[] = [];
       const values: any[] = [];
       if (title) {
@@ -198,29 +164,11 @@ router.patch(
 );
 
 // Delete article
-router.delete("/:id", validatePostId, authenticateToken, async (req, res) => {
+router.delete("/:id", validatePostId, authenticateToken, checkArticleOwnership, async (req, res) => {
   const articleId = Number(req.params.id);
-  const userId = (req as any).user.id;
 
   try {
-    // Check if article exists and belongs to user
-    const [rows] = await pool.execute(
-      "select submitted_by_user_id from articles where id = ?",
-      [articleId]
-    );
-    const articles = rows as any[];
-
-    if (articles.length === 0) {
-      return res.status(404).json({ error: "Article not found" });
-    }
-
-    if (articles[0].submitted_by_user_id !== userId) {
-      return res
-        .status(403)
-        .json({ error: "You are not authorized to delete this article" });
-    }
-
-    const [result]: [ResultSetHeader, any] = await pool.execute(
+    await pool.execute(
       "delete from articles where id = ?",
       [articleId]
     );
