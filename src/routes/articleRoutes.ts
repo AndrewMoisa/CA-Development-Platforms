@@ -94,17 +94,31 @@ router.put(
   validateRequiredPostData,
   async (req, res) => {
     const articleId = Number(req.params.id);
+    const userId = (req as any).user.id;
     const { title, body, category } = req.body;
 
     try {
+      // Check if article exists and belongs to user
+      const [rows] = await pool.execute(
+        "select submitted_by_user_id from articles where id = ?",
+        [articleId]
+      );
+      const articles = rows as any[];
+
+      if (articles.length === 0) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      if (articles[0].submitted_by_user_id !== userId) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this article" });
+      }
+
       const [result]: [ResultSetHeader, any] = await pool.execute(
         "update articles set title = ?, body = ?, category = ? where id = ?",
         [title, body, category, articleId]
       );
-
-      if (result.affectedRows === 0) {
-        return res.status(404).json({ error: "Article not found" });
-      }
 
       const article: ArticleResponse = { id: articleId, title, body, category };
 
@@ -123,35 +137,60 @@ router.patch(
   authenticateToken,
   async (req, res) => {
     const articleId = Number(req.params.id);
+    const userId = (req as any).user.id;
     const { title, body, category } = req.body;
-    const fieldsToUpdate: string[] = [];
-    const values: any[] = [];
-    if (title) {
-      fieldsToUpdate.push("title = ?");
-      values.push(title);
-    }
-    if (body) {
-      fieldsToUpdate.push("body = ?");
-      values.push(body);
-    }
-    if (category) {
-      fieldsToUpdate.push("category = ?");
-      values.push(category);
-    }
-    if (fieldsToUpdate.length === 0) {
-      return res
-        .status(400)
-        .json({ error: "At least one field (title, body, category) is required to update" });
-    }
-    values.push(articleId);
 
-    const updateQuery = `update articles set ${fieldsToUpdate.join(
-      ", "
-    )} where id = ?`;
+    try {
 
-    await pool.execute(updateQuery, values);
+      // Check if article exists and belongs to user
+      const [rows] = await pool.execute(
+        "select submitted_by_user_id from articles where id = ?",
+        [articleId]
+      );
+      const articles = rows as any[];
 
-    res.json({ message: "Article updated successfully" });
+      if (articles.length === 0) {
+        return res.status(404).json({ error: "Article not found" });
+      }
+
+      if (articles[0].submitted_by_user_id !== userId) {
+        return res
+          .status(403)
+          .json({ error: "You are not authorized to update this article" });
+      }
+
+      const fieldsToUpdate: string[] = [];
+      const values: any[] = [];
+      if (title) {
+        fieldsToUpdate.push("title = ?");
+        values.push(title);
+      }
+      if (body) {
+        fieldsToUpdate.push("body = ?");
+        values.push(body);
+      }
+      if (category) {
+        fieldsToUpdate.push("category = ?");
+        values.push(category);
+      }
+      if (fieldsToUpdate.length === 0) {
+        return res
+          .status(400)
+          .json({ error: "At least one field (title, body, category) is required to update" });
+      }
+      values.push(articleId);
+
+      const updateQuery = `update articles set ${fieldsToUpdate.join(
+        ", "
+      )} where id = ?`;
+
+      await pool.execute(updateQuery, values);
+
+      res.json({ message: "Article updated successfully" });
+    } catch (error) {
+      console.error("Error", error);
+      res.status(500).json({ error: "Failed to update article" });
+    }
   }
 );
 
