@@ -190,7 +190,4 @@ router.delete("/:id", validatePostId, authenticateToken, async (req, res) => {
   }
 });
 
-
-
-
 export default router;
