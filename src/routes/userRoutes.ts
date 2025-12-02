@@ -15,9 +15,17 @@ const router = Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management endpoints
+ */
+
+/**
+ * @swagger
  * /users:
  *   get:
  *     summary: Get all users with pagination
+ *     tags: [Users]
  *     description: Retrieve a paginated list of all users
  *     parameters:
  *       - in: query
@@ -91,6 +99,7 @@ router.get("/", async (req, res, next) => {
  * /users/{id}:
  *   get:
  *     summary: Get a user by ID
+ *     tags: [Users]
  *     description: Retrieve a specific user by their ID
  *     parameters:
  *       - in: path
@@ -174,6 +183,7 @@ router.get("/:id", validate(userIdSchema), async (req, res, next) => {
  * /users:
  *   post:
  *     summary: Create a new user
+ *     tags: [Users]
  *     description: Create a new user with username and email
  *     requestBody:
  *       required: true
@@ -254,6 +264,7 @@ router.post("/", validate(createUserSchema), async (req, res, next) => {
  * /users/{id}:
  *   put:
  *     summary: Update a user completely
+ *     tags: [Users]
  *     description: Replace all user data with the provided values
  *     parameters:
  *       - in: path
@@ -361,6 +372,9 @@ router.put(
  * /users/{id}:
  *   patch:
  *     summary: Partially update a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
  *     description: Update specific fields of a user (username and/or email)
  *     parameters:
  *       - in: path
@@ -498,6 +512,7 @@ router.patch(
  * /users/{id}:
  *   delete:
  *     summary: Delete a user
+ *     tags: [Users]
  *     description: Delete a user by their ID
  *     parameters:
  *       - in: path

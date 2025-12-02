@@ -14,7 +14,58 @@ import { checkArticleOwnership } from "../middlewares/articleMiddleware";
 
 const router = Router();
 
-// Get all articles
+/**
+ * @swagger
+ * tags:
+ *   name: Articles
+ *   description: Article management endpoints
+ */
+
+/**
+ * @swagger
+ * /articles:
+ *   get:
+ *     summary: Get all articles
+ *     tags: [Articles]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *     responses:
+ *       200:
+ *         description: List of articles
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   title:
+ *                     type: string
+ *                   body:
+ *                     type: string
+ *                   category:
+ *                     type: string
+ *                   submitted_by_user_id:
+ *                     type: integer
+ *                   created_at:
+ *                     type: string
+ *                     format: date-time
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/", async (req, res, next) => {
   // users?page=1&limit=10
 
@@ -35,7 +86,45 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-// Get article by ID
+/**
+ * @swagger
+ * /articles/{id}:
+ *   get:
+ *     summary: Get article by ID
+ *     tags: [Articles]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     responses:
+ *       200:
+ *         description: Article details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 title:
+ *                   type: string
+ *                 body:
+ *                   type: string
+ *                 category:
+ *                   type: string
+ *                 submitted_by_user_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *       404:
+ *         description: Article not found
+ *       500:
+ *         description: Internal server error
+ */
 router.get("/:id", validate(articleIdSchema), async (req, res, next) => {
   try {
     const articleId = Number(req.params.id);
@@ -55,8 +144,43 @@ router.get("/:id", validate(articleIdSchema), async (req, res, next) => {
   }
 });
 
-// Create new article
-
+/**
+ * @swagger
+ * /articles:
+ *   post:
+ *     summary: Create a new article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - body
+ *               - category
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 100
+ *               body:
+ *                 type: string
+ *                 minLength: 10
+ *               category:
+ *                 type: string
+ *                 minLength: 3
+ *     responses:
+ *       201:
+ *         description: Article created successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
 router.post(
   "/",
   authenticateToken,
@@ -85,7 +209,54 @@ router.post(
   }
 );
 
-// Update article
+/**
+ * @swagger
+ * /articles/{id}:
+ *   put:
+ *     summary: Update an article completely
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - body
+ *               - category
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 100
+ *               body:
+ *                 type: string
+ *                 minLength: 10
+ *               category:
+ *                 type: string
+ *                 minLength: 3
+ *     responses:
+ *       200:
+ *         description: Article updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
+ *       404:
+ *         description: Article not found
+ *       500:
+ *         description: Internal server error
+ */
 router.put(
   "/:id",
   authenticateToken,
@@ -110,7 +281,52 @@ router.put(
   }
 );
 
-// Update article partially
+/**
+ * @swagger
+ * /articles/{id}:
+ *   patch:
+ *     summary: Partially update an article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 minLength: 5
+ *                 maxLength: 100
+ *               body:
+ *                 type: string
+ *                 minLength: 10
+ *               category:
+ *                 type: string
+ *                 minLength: 3
+ *     responses:
+ *       200:
+ *         description: Article updated successfully
+ *       400:
+ *         description: At least one field is required
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
+ *       404:
+ *         description: Article not found
+ *       500:
+ *         description: Internal server error
+ */
 router.patch(
   "/:id",
   authenticateToken,
@@ -155,7 +371,33 @@ router.patch(
   }
 );
 
-// Delete article
+/**
+ * @swagger
+ * /articles/{id}:
+ *   delete:
+ *     summary: Delete an article
+ *     tags: [Articles]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Article ID
+ *     responses:
+ *       200:
+ *         description: Article deleted successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
+ *       404:
+ *         description: Article not found
+ *       500:
+ *         description: Internal server error
+ */
 router.delete(
   "/:id",
   authenticateToken,
