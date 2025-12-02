@@ -18,9 +18,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Logger
-const morganFormat = ':method :url :status :res[content-length] - :response-time ms';
 app.use(
-  morgan(morganFormat, {
+  morgan('combined', {
     stream: {
       write: (message) => logger.http(message.trim()),
     },

@@ -12,7 +12,7 @@ export const errorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  logger.error(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
+  logger.error(err);
 
   if (config.nodeEnv === 'development') {
     res.status(err.statusCode).json({
