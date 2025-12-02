@@ -90,6 +90,7 @@ router.post(
 router.put(
   "/:id",
   validatePostId,
+  authenticateToken,
   validateRequiredPostData,
   async (req, res) => {
     const articleId = Number(req.params.id);
@@ -115,6 +116,40 @@ router.put(
   }
 );
 
+// Delete article
+router.delete("/:id", validatePostId, authenticateToken, async (req, res) => {
+  const articleId = Number(req.params.id);
+  const userId = (req as any).user.id;
+
+  try {
+    // Check if article exists and belongs to user
+    const [rows] = await pool.execute(
+      "select submitted_by_user_id from articles where id = ?",
+      [articleId]
+    );
+    const articles = rows as any[];
+
+    if (articles.length === 0) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+
+    if (articles[0].submitted_by_user_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You are not authorized to delete this article" });
+    }
+
+    const [result]: [ResultSetHeader, any] = await pool.execute(
+      "delete from articles where id = ?",
+      [articleId]
+    );
+    
+    res.json({ message: "Article deleted successfully" });
+  } catch (error) {
+    console.error("Error", error);
+    res.status(500).json({ error: "Failed to delete article" });
+  }
+});
 
 
 
