@@ -1,29 +1,45 @@
-# Express TypeScript Skeleton
+# Express TypeScript API
 
-A robust and production-ready boilerplate for building RESTful APIs with Node.js, Express, and TypeScript.
+A robust RESTful API boilerplate built with Node.js, Express, and TypeScript. This project features secure authentication, role-based access control, input validation, and comprehensive API documentation.
 
 ## 🚀 Features
 
-- **Framework**: Built with [Express 5](https://expressjs.com/) and [TypeScript](https://www.typescriptlang.org/).
-- **Database**: MySQL integration using [mysql2](https://github.com/sidorares/node-mysql2).
-- **Authentication**: Secure JWT authentication with [jsonwebtoken](https://github.com/auth0/node-jsonwebtoken) and password hashing via [bcrypt](https://github.com/kelektiv/node.bcrypt.js).
-- **Validation**: Request validation using [Zod](https://zod.dev/).
-- **Documentation**: Auto-generated API docs with [Swagger UI](https://github.com/scottie1984/swagger-ui-express).
-- **Environment**: Type-safe environment variables with [dotenv](https://github.com/motdotla/dotenv).
-- **CORS**: Enabled via [cors](https://github.com/expressjs/cors).
-- **Hot Reload**: Fast development experience with [tsx](https://github.com/privatenumber/tsx).
+- **TypeScript**: Written in TypeScript for type safety and better developer experience.
+- **Authentication**: Secure user registration and login using JWT (JSON Web Tokens) and Bcrypt.
+- **Database**: MySQL integration using `mysql2` with connection pooling.
+- **Validation**: Request validation using `Zod` schemas.
+- **Documentation**: Auto-generated API documentation using Swagger UI.
+- **Architecture**: Modular structure with separation of concerns (Routes, Controllers/Handlers, Services/Models, Middlewares).
+- **Security**:
+  - Password hashing.
+  - Protected routes with JWT middleware.
+  - Resource ownership verification.
+- **Error Handling**: Centralized global error handling mechanism.
 
-## 🛠️ Prerequisites
+## 🛠️ Tech Stack
 
-- Node.js (v18+ recommended)
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Language**: TypeScript
+- **Database**: MySQL
+- **Validation**: Zod
+- **Authentication**: jsonwebtoken, bcrypt
+- **Documentation**: swagger-jsdoc, swagger-ui-express
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+
+- Node.js (v14 or higher)
+- npm or yarn
 - MySQL Server
 
-## 📦 Installation
+## ⚙️ Installation
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/AndrewMoisa/express-ts-skeleton.git
-   cd express-ts-skeleton
+   cd CA-Development-Platforms
    ```
 
 2. **Install dependencies**
@@ -32,55 +48,112 @@ A robust and production-ready boilerplate for building RESTful APIs with Node.js
    ```
 
 3. **Configure Environment Variables**
-   Copy the example env file and update it with your credentials.
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Update `.env` with your database details and JWT secret:
+   Create a `.env` file in the root directory and add the following configuration:
+
    ```env
    PORT=3000
    NODE_ENV=development
-   JWT_SECRET=your_super_secret_key
+   
+   # Database Configuration
    DB_HOST=localhost
    DB_USER=root
-   DB_PASSWORD=password
+   DB_PASSWORD=your_password
    DB_NAME=express_ts_db
    DB_PORT=3306
+
+   # JWT Configuration
+   JWT_SECRET=your_super_secret_jwt_key
    ```
 
-## 🚀 Running the Project
+4. **Database Setup**
+   Ensure your MySQL server is running and create the database specified in `DB_NAME`.
+   
+   You will need to create the following tables:
+   
+   ```sql
+   CREATE TABLE users (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     username VARCHAR(255) NOT NULL UNIQUE,
+     email VARCHAR(255) NOT NULL UNIQUE,
+     password_hash VARCHAR(255) NOT NULL,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   );
 
-### Development
-Runs the application in development mode with hot-reloading.
+   CREATE TABLE articles (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     title VARCHAR(255) NOT NULL,
+     body TEXT NOT NULL,
+     category VARCHAR(100) NOT NULL,
+     submitted_by_user_id INT NOT NULL,
+     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     FOREIGN KEY (submitted_by_user_id) REFERENCES users(id) ON DELETE CASCADE
+   );
+   ```
+
+## 🚀 Running the Application
+
+**Development Mode** (with hot-reloading):
 ```bash
 npm run dev
 ```
 
-### Production Build
-Compiles the TypeScript code to JavaScript in the `dist` directory.
+**Build for Production**:
 ```bash
 npm run build
 ```
 
-### Start Production Server
-Runs the compiled application from the `dist` directory.
+**Start Production Server**:
 ```bash
 npm start
 ```
 
 ## 📚 API Documentation
 
-Once the server is running, you can access the Swagger API documentation at:
+Once the application is running, you can access the Swagger API documentation at:
 
 ```
 http://localhost:3000/api-docs
 ```
 
-## 🤝 Contributing
+## 📂 Project Structure
 
-Contributions, issues, and feature requests are welcome!
+```
+src/
+├── config/         # Environment and database configuration
+├── interfaces/     # TypeScript interfaces and types
+├── middlewares/    # Express middlewares (Auth, Validation, Error handling)
+├── routes/         # API route definitions
+├── schemas/        # Zod validation schemas
+├── utils/          # Utility functions (JWT, AppError)
+├── app.ts          # Express app setup
+└── index.ts        # Entry point
+```
 
-## 📝 License
+## 💭 Motivation
 
-This project is [ISC](https://opensource.org/licenses/ISC) licensed.
+### Why I chose Option 1 (API Development)
+I chose to focus on the backend API development because I enjoy the logic and structure involved in server-side programming. Designing efficient database schemas, implementing secure authentication flows, and ensuring data integrity through rigorous validation are challenges I find rewarding. It allows me to build a strong foundation that any frontend client could consume.
+
+### Development Process
+**What I liked:**
+- Implementing the **Middleware pattern** for authentication and validation was very satisfying as it keeps the code clean and DRY (Don't Repeat Yourself).
+- Working with **TypeScript** provided a great developer experience with autocompletion and type safety, catching errors before runtime.
+- Setting up **Swagger** documentation made testing endpoints much easier and professional.
+
+**What I didn't enjoy:**
+- Writing raw SQL queries can be error-prone and verbose compared to using an ORM, though it was good for understanding the underlying database interactions.
+- Handling all the edge cases for error handling took a significant amount of time to get right.
+
+### Challenges
+- **Authentication Flow**: Correctly implementing JWT storage and verifying tokens while handling expiration and security edge cases was complex.
+- **Type Safety with Express**: Extending Express Request types to include user information (e.g., `req.user`) required understanding TypeScript declaration merging and type assertions.
+
+### Custom API vs SaaS (e.g., Supabase)
+**Benefits of Custom API:**
+- **Full Control**: You have complete control over the architecture, database optimization, and business logic.
+- **No Vendor Lock-in**: You aren't tied to a specific platform's pricing or limitations.
+- **Custom Logic**: Complex business rules that don't fit into standard CRUD operations are easier to implement in code.
+
+## 📄 License
+
+This project is licensed under the ISC License.
