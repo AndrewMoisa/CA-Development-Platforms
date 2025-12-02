@@ -14,16 +14,3 @@ export function validatePostId(
   next();
 }
 
-export function validateRequiredPostData(
-  req: Request,
-    res: Response,
-    next: NextFunction
-) {
-  const { title, body, category } = req.body;
-    if (!title || !body || !category) {
-    return res
-      .status(400)
-      .json({ error: "Title, body, and category are required" });
-  }
-    next();
-}   
