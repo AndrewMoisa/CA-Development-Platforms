@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../utils/AppError';
 import { config } from '../config/env';
+import { logger } from '../utils/logger';
 
 export const errorHandler = (
   err: AppError,
@@ -10,6 +11,8 @@ export const errorHandler = (
 ) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
+
+  logger.error(`${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
 
   if (config.nodeEnv === 'development') {
     res.status(err.statusCode).json({
