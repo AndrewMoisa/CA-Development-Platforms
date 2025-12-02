@@ -2,8 +2,10 @@ import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
 import { pool } from "../config/database";
 import { Article, ArticleResponse } from "../interfaces/interfaces";
-import { validatePostId, validateRequiredPostData } from "../middlewares/postValidation";
+import { validatePostId } from "../middlewares/postValidation";
 import { authenticateToken } from "../middlewares/authMiddleware";
+import { validate } from "../middlewares/validateResource";
+import { createArticleSchema, updateArticleSchema, patchArticleSchema } from "../schemas/article.schema";
 
 const router = Router();
 
@@ -59,7 +61,7 @@ router.get("/:id", validatePostId, async (req, res) => {
 router.post(
   "/",
   authenticateToken,
-  validateRequiredPostData,
+  validate(createArticleSchema),
   async (req, res) => {
     const { title, body, category } = req.body;
     const userId = (req as any).user.id;
@@ -91,7 +93,7 @@ router.put(
   "/:id",
   validatePostId,
   authenticateToken,
-  validateRequiredPostData,
+  validate(updateArticleSchema),
   async (req, res) => {
     const articleId = Number(req.params.id);
     const userId = (req as any).user.id;
@@ -135,6 +137,7 @@ router.patch(
   "/:id",
   validatePostId,
   authenticateToken,
+  validate(patchArticleSchema),
   async (req, res) => {
     const articleId = Number(req.params.id);
     const userId = (req as any).user.id;
