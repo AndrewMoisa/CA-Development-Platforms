@@ -6,11 +6,7 @@ const userCore = {
       message: "Username must be a string",
     })
     .min(1, "Username cannot be empty"),
-  email: z
-    .string({
-      message: "Email must be a string",
-    })
-    .email("Invalid email format"),
+  email: z.email({ message: "Invalid email address" }),
 };
 
 export const createUserSchema = z.object({
