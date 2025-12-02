@@ -2,16 +2,20 @@ import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
 import { pool } from "../config/database";
 import { Article, ArticleResponse } from "../interfaces/interfaces";
-import { validatePostId } from "../middlewares/postValidation";
 import { authenticateToken } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validateResource";
-import { createArticleSchema, updateArticleSchema, patchArticleSchema } from "../schemas/article.schema";
+import {
+  createArticleSchema,
+  updateArticleSchema,
+  patchArticleSchema,
+  articleIdSchema,
+} from "../schemas/article.schema";
 import { checkArticleOwnership } from "../middlewares/articleMiddleware";
 
 const router = Router();
 
 // Get all articles
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   // users?page=1&limit=10
 
   const page = Number(req.query.page) || 1;
@@ -19,25 +23,20 @@ router.get("/", async (req, res) => {
 
   const offset = (page - 1) * limit;
 
-  console.log("page ", page);
-  console.log("limit ", limit);
-  console.log("offset ", offset);
-
   try {
-    const [rows] = await pool.execute("select * from articles limit ? offset ?", [
-      limit.toString(),
-      offset.toString(),
-    ]);
+    const [rows] = await pool.execute(
+      "select * from articles limit ? offset ?",
+      [limit.toString(), offset.toString()]
+    );
     const articles = rows as Article[];
     res.json(articles);
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to fetch articles" });
+    next(error);
   }
 });
 
 // Get article by ID
-router.get("/:id", validatePostId, async (req, res) => {
+router.get("/:id", validate(articleIdSchema), async (req, res, next) => {
   try {
     const articleId = Number(req.params.id);
 
@@ -52,8 +51,7 @@ router.get("/:id", validatePostId, async (req, res) => {
 
     res.json(articles[0]);
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to fetch article" });
+    next(error);
   }
 });
 
@@ -63,7 +61,7 @@ router.post(
   "/",
   authenticateToken,
   validate(createArticleSchema),
-  async (req, res) => {
+  async (req, res, next) => {
     const { title, body, category } = req.body;
     const userId = (req as any).user.id;
 
@@ -79,24 +77,21 @@ router.post(
         title,
         body,
         category,
-      };  
+      };
       res.status(201).json(article);
     } catch (error) {
-      console.error("Error", error);
-      res.status(500).json({ error: "Failed to create article" });
+      next(error);
     }
   }
 );
 
-
 // Update article
 router.put(
   "/:id",
-  validatePostId,
   authenticateToken,
-  checkArticleOwnership,
   validate(updateArticleSchema),
-  async (req, res) => {
+  checkArticleOwnership,
+  async (req, res, next) => {
     const articleId = Number(req.params.id);
     const { title, body, category } = req.body;
 
@@ -110,8 +105,7 @@ router.put(
 
       res.json(article);
     } catch (error) {
-      console.error("Error", error);
-      res.status(500).json({ error: "Failed to update article" });
+      next(error);
     }
   }
 );
@@ -119,11 +113,10 @@ router.put(
 // Update article partially
 router.patch(
   "/:id",
-  validatePostId,
   authenticateToken,
-  checkArticleOwnership,
   validate(patchArticleSchema),
-  async (req, res) => {
+  checkArticleOwnership,
+  async (req, res, next) => {
     const articleId = Number(req.params.id);
     const { title, body, category } = req.body;
 
@@ -157,27 +150,28 @@ router.patch(
 
       res.json({ message: "Article updated successfully" });
     } catch (error) {
-      console.error("Error", error);
-      res.status(500).json({ error: "Failed to update article" });
+      next(error);
     }
   }
 );
 
 // Delete article
-router.delete("/:id", validatePostId, authenticateToken, checkArticleOwnership, async (req, res) => {
-  const articleId = Number(req.params.id);
+router.delete(
+  "/:id",
+  authenticateToken,
+  validate(articleIdSchema),
+  checkArticleOwnership,
+  async (req, res, next) => {
+    const articleId = Number(req.params.id);
 
-  try {
-    await pool.execute(
-      "delete from articles where id = ?",
-      [articleId]
-    );
-    
-    res.json({ message: "Article deleted successfully" });
-  } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to delete article" });
+    try {
+      await pool.execute("delete from articles where id = ?", [articleId]);
+
+      res.json({ message: "Article deleted successfully" });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 export default router;

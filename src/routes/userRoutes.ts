@@ -2,12 +2,14 @@ import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
 import { pool } from "../config/database";
 import { User, UserResponse } from "../interfaces/interfaces";
-import {
-  validatePartialUserData,
-  validateRequiredUserData,
-  validateUserId,
-} from "../middlewares/userValidation";
+import { validate } from "../middlewares/validateResource";
 import { authenticateToken } from "../middlewares/authMiddleware";
+import {
+  createUserSchema,
+  updateUserSchema,
+  patchUserSchema,
+  userIdSchema,
+} from "../schemas/user.schema";
 
 const router = Router();
 
@@ -64,7 +66,7 @@ const router = Router();
  *                   type: string
  *                   example: "Failed to fetch users"
  */
-router.get("/", async (req, res) => {
+router.get("/", async (req, res, next) => {
   // users?page=1&limit=10
 
   const page = Number(req.query.page) || 1;
@@ -73,15 +75,14 @@ router.get("/", async (req, res) => {
   const offset = (page - 1) * limit;
 
   try {
-    const [rows] = await pool.execute("select * from users limit ? offset ?", [
-      limit.toString(),
-      offset.toString(),
-    ]);
-    const users = rows as User[];
+    const [rows] = await pool.execute(
+      "select id, username, email from users limit ? offset ?",
+      [limit.toString(), offset.toString()]
+    );
+    const users = rows as UserResponse[];
     res.json(users);
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to fetch users" });
+    next(error);
   }
 });
 
@@ -148,14 +149,15 @@ router.get("/", async (req, res) => {
  *                   type: string
  *                   example: "Failed to fetch user"
  */
-router.get("/:id", validateUserId, async (req, res) => {
+router.get("/:id", validate(userIdSchema), async (req, res, next) => {
   try {
     const userId = Number(req.params.id);
 
-    const [rows] = await pool.execute("select * from users where id = ?", [
-      userId,
-    ]);
-    const users = rows as User[];
+    const [rows] = await pool.execute(
+      "select id, username, email from users where id = ?",
+      [userId]
+    );
+    const users = rows as UserResponse[];
 
     if (users.length === 0) {
       return res.status(404).json({ error: "User not found" });
@@ -163,8 +165,7 @@ router.get("/:id", validateUserId, async (req, res) => {
 
     res.json(users[0]);
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to fetch user" });
+    next(error);
   }
 });
 
@@ -231,7 +232,7 @@ router.get("/:id", validateUserId, async (req, res) => {
  *                   type: string
  *                   example: "Failed to create user"
  */
-router.post("/", validateRequiredUserData, async (req, res) => {
+router.post("/", validate(createUserSchema), async (req, res, next) => {
   const { username, email } = req.body;
 
   try {
@@ -240,12 +241,11 @@ router.post("/", validateRequiredUserData, async (req, res) => {
       [username, email]
     );
 
-    const user: User = { id: result.insertId, username, email };
+    const user: UserResponse = { id: result.insertId, username, email };
 
     res.status(201).json(user);
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to create user" });
+    next(error);
   }
 });
 
@@ -332,9 +332,8 @@ router.post("/", validateRequiredUserData, async (req, res) => {
  */
 router.put(
   "/:id",
-  validateUserId,
-  validateRequiredUserData,
-  async (req, res) => {
+  validate(updateUserSchema),
+  async (req, res, next) => {
     const userId = Number(req.params.id);
     const { username, email } = req.body;
 
@@ -348,12 +347,11 @@ router.put(
         return res.status(404).json({ error: "User not found" });
       }
 
-      const user: User = { id: userId, username, email };
+      const user: UserResponse = { id: userId, username, email };
 
       res.json(user);
     } catch (error) {
-      console.error("Error", error);
-      res.status(500).json({ error: "Failed to update user" });
+      next(error);
     }
   }
 );
@@ -440,9 +438,8 @@ router.put(
 router.patch(
   "/:id",
   authenticateToken,
-  validateUserId,
-  validatePartialUserData,
-  async (req, res) => {
+  validate(patchUserSchema),
+  async (req, res, next) => {
     const userId = Number(req.params.id);
     const { username, email } = req.body;
 
@@ -491,8 +488,7 @@ router.patch(
 
       res.json(user);
     } catch (error) {
-      console.error("Error", error);
-      res.status(500).json({ error: "Failed to update user" });
+      next(error);
     }
   }
 );
@@ -545,7 +541,7 @@ router.patch(
  *                   type: string
  *                   example: "Failed to delete user"
  */
-router.delete("/:id", validateUserId, async (req, res) => {
+router.delete("/:id", validate(userIdSchema), async (req, res, next) => {
   const userId = Number(req.params.id);
 
   try {
@@ -560,11 +556,8 @@ router.delete("/:id", validateUserId, async (req, res) => {
 
     res.status(204).send();
   } catch (error) {
-    console.error("Error", error);
-    res.status(500).json({ error: "Failed to delete user" });
+    next(error);
   }
 });
-
-
 
 export default router;

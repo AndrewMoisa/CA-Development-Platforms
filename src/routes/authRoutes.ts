@@ -9,7 +9,7 @@ import { generateToken } from "../utils/jwt";
 
 const router = Router();
 
-router.post("/register", validate(registerSchema), async (req, res) => {
+router.post("/register", validate(registerSchema), async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
@@ -46,14 +46,11 @@ router.post("/register", validate(registerSchema), async (req, res) => {
       user: userResponse,
     });
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({
-      error: "Failed to register user",
-    });
+    next(error);
   }
 });
 
-router.post("/login", validate(loginSchema), async (req, res) => {
+router.post("/login", validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -93,10 +90,7 @@ router.post("/login", validate(loginSchema), async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({
-      error: "Failed to log in",
-    });
+    next(error);
   }
 });
 
