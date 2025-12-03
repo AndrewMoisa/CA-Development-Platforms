@@ -1,5 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 const options: swaggerJsdoc.Options = {
   definition: {

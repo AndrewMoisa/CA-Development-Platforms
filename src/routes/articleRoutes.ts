@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
-import { pool } from "../config/database";
-import { Article, ArticleResponse } from "../interfaces/interfaces";
-import { authenticateToken } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validateResource";
+import { pool } from "../config/database.js";
+import { Article, ArticleResponse } from "../interfaces/interfaces.js";
+import { authenticateToken } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validateResource.js";
 import {
   createArticleSchema,
   updateArticleSchema,
   patchArticleSchema,
   articleIdSchema,
-} from "../schemas/article.schema";
-import { checkArticleOwnership } from "../middlewares/articleMiddleware";
+} from "../schemas/article.schema.js";
+import { checkArticleOwnership } from "../middlewares/articleMiddleware.js";
 
 const router = Router();
 

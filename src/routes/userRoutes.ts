@@ -1,15 +1,15 @@
 import { Router } from "express";
 import { ResultSetHeader } from "mysql2";
-import { pool } from "../config/database";
-import { User, UserResponse } from "../interfaces/interfaces";
-import { validate } from "../middlewares/validateResource";
-import { authenticateToken } from "../middlewares/authMiddleware";
+import { pool } from "../config/database.js";
+import { User, UserResponse } from "../interfaces/interfaces.js";
+import { validate } from "../middlewares/validateResource.js";
+import { authenticateToken } from "../middlewares/authMiddleware.js";
 import {
   createUserSchema,
   updateUserSchema,
   patchUserSchema,
   userIdSchema,
-} from "../schemas/user.schema";
+} from "../schemas/user.schema.js";
 
 const router = Router();
 

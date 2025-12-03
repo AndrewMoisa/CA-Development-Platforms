@@ -1,6 +1,6 @@
-import app from './app';
-import { config } from './config/env';
-import { checkConnection } from './config/database';
+import app from './app.js';
+import { config } from './config/env.js';
+import { checkConnection } from './config/database.js';
 
 const PORT = config.port;
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { pool } from "../config/database";
-import { AppError } from "../utils/AppError";
+import { pool } from "../config/database.js";
+import { AppError } from "../utils/AppError.js";
 
 export async function checkArticleOwnership(
   req: Request,

@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/AppError';
-import { config } from '../config/env';
-import { logger } from '../utils/logger';
+import { AppError } from '../utils/AppError.js';
+import { config } from '../config/env.js';
+import { logger } from '../utils/logger.js';
 
 export const errorHandler = (
   err: AppError,

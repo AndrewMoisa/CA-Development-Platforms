@@ -1,11 +1,11 @@
 import { Router } from "express";
 import bcrypt from "bcrypt";
 import { ResultSetHeader } from "mysql2";
-import { pool } from "../config/database";
-import { validate } from "../middlewares/validateResource";
-import { registerSchema, loginSchema } from "../schemas/auth.schema";
-import { User, UserResponse } from "../interfaces/interfaces";
-import { generateToken } from "../utils/jwt";
+import { pool } from "../config/database.js";
+import { validate } from "../middlewares/validateResource.js";
+import { registerSchema, loginSchema } from "../schemas/auth.schema.js";
+import { User, UserResponse } from "../interfaces/interfaces.js";
+import { generateToken } from "../utils/jwt.js";
 
 const router = Router();
 

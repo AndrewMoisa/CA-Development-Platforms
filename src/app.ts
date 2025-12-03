@@ -3,11 +3,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
-import { specs } from './config/swagger';
-import routes from './routes';
-import { errorHandler } from './middlewares/errorHandler';
-import { AppError } from './utils/AppError';
-import { logger } from './utils/logger';
+import { specs } from './config/swagger.js';
+import routes from './routes/index.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+import { AppError } from './utils/AppError.js';
+import { logger } from './utils/logger.js';
 
 const app = express();
 
